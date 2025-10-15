@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Nzuri Café — Luxury Campus Ordering</title>
+  <meta name="description" content="Nzuri Café at Ekhaya Junction (TUT). Luxury cart with WhatsApp checkout for Kotas, Chips, Fish, and Sandwiches." />
+  <style>
+    :root{
+      --bg:#0f1115; --card:#151821; --soft:#1b1f2a; --deep:#0b0d12;
+      --gold:#c8a96a; --text:#e8ecf1; --muted:#a8b0bd;
+      --danger:#b94a4a; --wa-green:#25D366;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif}
+    a{color:inherit;text-decoration:none}
+
+    /* Sticky header that compacts on scroll */
+    header.nav{
+      position:sticky;top:0;z-index:100;background:var(--bg);
+      display:flex;justify-content:space-between;align-items:center;
+      padding:14px 20px;transition:all .18s ease;
+      border-bottom:1px solid rgba(200,169,106,0.12);
+      backdrop-filter:saturate(1.2) blur(6px);
+    }
+    header.nav.compact{padding:8px 16px;box-shadow:0 2px 12px rgba(0,0,0,0.45)}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{
+      width:42px;height:42px;border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #e4d2a4, var(--gold) 35%, #4b3d23 70%, #2a2317);
+      box-shadow: 0 0 0 2px rgba(200,169,106,0.35), 0 10px 30px rgba(0,0,0,0.4);
+      transition:transform .2s ease;
+    }
+    header.nav.compact .logo{transform:scale(0.9)}
+    .title{font-weight:800;letter-spacing:0.3px}
+    .tag{color:var(--muted);font-size:13px}
+    .cta-bar{display:flex;gap:10px;align-items:center}
+    .cta{
+      padding:10px 16px;border:1px solid rgba(200,169,106,0.35);
+      border-radius:999px;background:linear-gradient(180deg,#1f232c,var(--soft));
+      font-weight:600;color:var(--text)
+    }
+    .cta.primary{background:linear-gradient(180deg,#2a2f3a,#1c2029);border-color:var(--gold)}
+    .cart-badge{
+      background:var(--gold);color:#111;font-weight:800;
+      border-radius:999px;padding:2px 8px;margin-left:6px;font-size:12px;
+      display:inline-block;min-width:20px;text-align:center
+    }
+
+    /* Category tabs under header (no cut off) */
+    .categories{
+      position:sticky;top:66px;z-index:95;
+      display:flex;gap:12px;justify-content:center;
+      background:var(--bg);padding:10px 16px;
+      border-bottom:1px solid rgba(200,169,106,0.12);
+      transition:top .18s ease, padding .18s ease;
+    }
+    header.nav.compact + .categories{top:56px;padding:8px 12px}
+    .categories a{
+      padding:8px 16px;border-radius:999px;
+      background:linear-gradient(180deg,#1f232c,var(--soft));
+      border:1px solid rgba(200,169,106,0.3);
+      font-weight:600;color:var(--text);transition:all .2s ease
+    }
+    .categories a.active,.categories a:hover{background:var(--gold);color:#111}
+
+    /* Hero preserved */
+    .container{max-width:1100px;margin:0 auto;padding:26px}
+    .hero{display:grid;grid-template-columns:1.1fr 0.9fr;gap:22px;padding:26px 0}
+    .panel{
+      background:linear-gradient(180deg,var(--card),var(--soft));
+      border:1px solid rgba(200,169,106,0.18);
+      border-radius:18px;padding:22px;
+      box-shadow:0 20px 50px rgba(0,0,0,0.45);
+    }
+    .headline{font-size:28px;font-weight:800;line-height:1.2;margin:0 0 8px}
+    .sub{color:var(--muted);margin:0 0 16px}
+    .notes{display:flex;gap:12px;flex-wrap:wrap}
+    .pill{font-size:13px;color:#d9e1ea;background:#1a1e27;border:1px solid rgba(255,255,255,0.06);border-radius:999px;padding:6px 10px}
+    .wa-btn{
+      display:inline-flex;align-items:center;gap:8px;
+      background:var(--wa-green);color:#0b2c13;font-weight:800;
+      padding:12px 16px;border:none;border-radius:12px;cursor:pointer;text-decoration:none;
+      box-shadow:0 8px 24px rgba(37,211,102,0.25)
+    }
+
+    .divider{height:1px;background:linear-gradient(90deg, rgba(200,169,106,0), rgba(200,169,106,0.35), rgba(200,169,106,0));margin:24px 0}
+
+    /* Layout: content + cart */
+    .section-wrap{display:grid;grid-template-columns:1fr 380px;gap:22px}
+    @media (max-width:1000px){.section-wrap{grid-template-columns:1fr}}
+
+    .section-title{font-size:20px;font-weight:800;margin:18px 0 8px}
+    .menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+
+    /* Cards */
+    .card{
+      display:flex;flex-direction:column;justify-content:flex-start;
+      background:linear-gradient(180deg,#151821,#101318);
+      border:1px solid rgba(200,169,106,0.14);border-radius:14px;padding:16px;min-height:190px
+    }
+    .card img{width:100%;border-radius:10px;margin-bottom:10px}
+    .card h4{margin:0;font-size:16px;font-weight:800}
+    .desc{color:var(--muted);font-size:13px;margin:6px 0 10px}
+    .price{font-weight:800;color:var(--gold)}
+
+    .qty-controls{display:flex;align-items:center;gap:8px;margin-top:12px}
+    .btn{padding:8px 12px;border:none;border-radius:10px;cursor:pointer;font-weight:800}
+    .btn-add{background:linear-gradient(180deg,#e9d9b0,var(--gold));color:#111}
+    .btn-sub{background:linear-gradient(180deg,#8b2f2f,var(--danger));color:#fff}
+    .qty-display{min-width:28px;text-align:center;font-weight:800}
+
+    .add-btn{
+      margin-top:10px;padding:8px 12px;border:none;border-radius:999px;
+      background:linear-gradient(180deg,#e9d9b0,var(--gold));color:#111;
+      font-weight:800;cursor:pointer;display:none
+    }
+
+    .options{margin-top:10px;display:none}
+    .option-group{margin:8px 0}
+    .option-label{font-size:12px;color:var(--muted);margin-bottom:6px}
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{
+      padding:7px 12px;border-radius:999px;background:#1a1e27;
+      border:1px solid rgba(200,169,106,0.28);cursor:pointer;font-size:13px;
+      transition:all .15s ease;
+    }
+    .chip:hover{border-color:rgba(200,169,106,0.45)}
+    .chip.active{background:var(--gold);color:#111;font-weight:800;border-color:var(--gold);box-shadow:0 6px 18px rgba(200,169,106,0.25)}
+
+    /* Fly-to-cart animation clone */
+    .fly-img {
+      position: fixed;
+      width: 80px;
+      height: auto;
+      border-radius: 8px;
+      z-index: 9999;
+      pointer-events: none;
+      transition: transform 0.8s cubic-bezier(0.55, 0.06, 0.68, 0.19), opacity 0.8s;
+    }
+
+    /* Cart */
+    aside.cart{
+      position:sticky; top:126px;
+      background:linear-gradient(180deg,var(--card),var(--deep));
+      border:1px solid rgba(200,169,106,0.25);border-radius:18px;padding:16px;
+      box-shadow:0 20px 50px rgba(0,0,0,0.45);
+    }
+    .cart h3{margin:0 0 10px;font-size:18px;font-weight:800}
+    .order-meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);margin-bottom:10px}
+    .cart-items{margin:10px 0}
+    .cart-item{
+      display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;
+      padding:8px;border-radius:10px;background:#1a1e27;border:1px solid rgba(255,255,255,0.06);margin-bottom:8px
+    }
+    .variant{font-size:12px;color:var(--muted)}
+    .line-total{font-weight:800;color:var(--gold)}
+    .remove-one{background:linear-gradient(180deg,#8b2f2f,var(--danger));color:#fff;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:800}
+    .remove-all{background:linear-gradient(180deg,#3a3f4a,#232834);color:#e8ecf1;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:800}
+
+    .summary{margin-top:12px;font-size:14px}
+    .summary-row{display:flex;justify-content:space-between;margin:4px 0}
+    .summary-total{font-size:16px;font-weight:800}
+    .input-field{margin:8px 0}
+    .input-field input{padding:10px;width:100%;border-radius:10px;border:1px solid #333;background:#1a1e27;color:var(--text)}
+
+    /* Delivery toggle + times */
+    .delivery-toggle{display:flex;gap:10px;margin:10px 0}
+    .toggle-option{
+      flex:1;text-align:center;padding:10px;border-radius:999px;
+      border:1px solid rgba(200,169,106,0.3);cursor:pointer;user-select:none;
+      background:linear-gradient(180deg,#1f232c,var(--soft));color:var(--text);font-weight:700;transition:all .15s ease;
+    }
+    .toggle-option small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+    .toggle-option.active{background:linear-gradient(180deg,#e9d9b0,var(--gold));color:#111;border-color:var(--gold);box-shadow:0 6px 18px rgba(200,169,106,0.25)}
+    .toggle-option.active small{color:#111}
+
+    /* Checkout buttons: WhatsApp green + Clear cart red */
+    .checkout-btn{
+      margin-top:12px;padding:12px;width:100%;
+      background:linear-gradient(180deg,#33e27a,var(--wa-green));
+      color:#092611;font-weight:800;border:none;border-radius:12px;cursor:pointer;
+      box-shadow:0 12px 30px rgba(37,211,102,0.25);
+    }
+    .clear-btn{
+      margin-top:8px;padding:10px;width:100%;
+      background:linear-gradient(180deg,#9e3b3b,var(--danger));
+      color:#fff;font-weight:800;border:none;border-radius:12px;cursor:pointer
+    }
+
+    /* Footer with hover contact */
+    .footer{
+      margin-top:40px;
+      padding:20px;
+      text-align:center;
+      background:linear-gradient(180deg,var(--card),var(--deep));
+      border-top:1px solid rgba(200,169,106,0.25);
+      font-size:14px;
+      color:var(--muted);
+      position:relative;
+    }
+    .footer-text{display:inline-block;position:relative;cursor:default}
+    .footer .contact{
+      opacity:0;visibility:hidden;position:absolute;
+      left:50%;transform:translateX(-50%);bottom:120%;
+      background:#1a1e27;color:var(--text);padding:6px 12px;border-radius:8px;
+      border:1px solid rgba(200,169,106,0.3);font-size:13px;white-space:nowrap;
+      transition:opacity .2s ease, visibility .2s ease;
+    }
+    .footer-text:hover .contact{opacity:1;visibility:visible}
+    .footer .contact::after{
+      content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);
+      border-width:6px;border-style:solid;border-color:#1a1e27 transparent transparent transparent;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sticky header -->
+  <header class="nav" id="app-header">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <div class="title">Nzuri Café</div>
+        <div class="tag">Premium campus canteen • Ekhaya Junction (TUT)</div>
+      </div>
+    </div>
+    <div class="cta-bar">
+      <a class="cta" href="#menu">View menu</a>
+      <a class="cta primary" href="#cart">View cart <span id="cart-count" class="cart-badge">0</span></a>
+    </div>
+  </header>
+
+  <!-- Category tabs -->
+  <nav class="categories" id="cat-bar">
+    <a href="#kotas">Kotas</a>
+    <a href="#chips">Chips</a>
+    <a href="#fish">Fish</a>
+    <a href="#sandwiches">Sandwiches</a>
+    <a href="#extras">Extras</a>
+  </nav>
+
+  <!-- Hero preserved -->
+  <div class="container">
+    <div class="hero" id="hero">
+      <div class="panel">
+        <h1 class="headline">Luxury taste, campus convenience.</h1>
+        <p class="sub">Kotas, Chips, Fish & Sandwiches—crafted fresh at Ekhaya Junction Residence, TUT Campus. Build cart, choose collection or delivery to Ekhaya (R7), and finalize on WhatsApp.</p>
+        <div class="notes">
+          <div class="pill">Open daily: 8:00–21:00</div>
+          <div class="pill">Collection at Nzuri Café (Ekhaya Junction)</div>
+          <div class="pill">Delivery: Ekhaya Junction rooms only (R7)</div>
+          <div class="pill">WhatsApp-first checkout</div>
+        </div>
+      </div>
+      <div class="panel" style="background:linear-gradient(180deg,#17321d,#132818);">
+        <h2 class="headline" style="font-size:22px">Order via cart + WhatsApp</h2>
+        <p class="sub">Use +/– to set quantity. Choose seasonings/sauces. Add variants to cart. Checkout sends a prefilled WhatsApp message.</p>
+        <a class="wa-btn" href="https://wa.me/27790717794?text=Hello%20Nzuri%20Caf%C3%A9%2C%20I%27m%20ready%20to%20order.">WhatsApp: 079 071 7794</a>
+        <div class="notes">
+          <div class="pill">Order ID: nzuri-YYYYMMDD-###</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="menu" class="divider" aria-hidden="true"></div>
+
+    <!-- Menu + Cart -->
+    <div class="section-wrap">
+      <div>
+        <!-- Kotas -->
+        <section id="kotas">
+          <h3 class="section-title">Kotas</h3>
+          <div class="menu">
+            <article class="card" data-item="Kota — Chips & French" data-price="18">
+              <img src="kota1.jpg" alt="Kota — Chips & French">
+              <div><h4>Kota — Chips & French</h4><p class="desc">Classic kota with golden chips and french polony.</p><div class="price">R18</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
+                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Kota — Chips, French & Half Russian" data-price="23">
+              <img src="kota2.jpg" alt="Kota — Chips, French & Half Russian">
+              <div><h4>Kota — Chips, French & Half Russian</h4><p class="desc">Hearty kota packed with chips, french polony, and half a Russian.</p><div class="price">R23</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
+                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Kota — Chips, French & Vienna" data-price="23">
+              <img src="kota3.jpg" alt="Kota — Chips, French & Vienna">
+              <div><h4>Kota — Chips, French & Vienna</h4><p class="desc">Crispy chips and french polony paired with a tender Vienna.</p><div class="price">R23</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
+                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Kota — Chips, French, Vienna & Half Russian" data-price="28">
+              <img src="kota4.jpg" alt="Kota — Chips, French, Vienna & Half Russian">
+              <div><h4>Kota — Chips, French, Vienna & Half Russian</h4><p class="desc">Deluxe stack of chips, french polony, Vienna, and half a Russian.</p><div class="price">R28</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
+                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Kota — Chips, Vienna & Cheese" data-price="26">
+              <img src="kota5.jpg" alt="Kota — Chips, Vienna & Cheese">
+              <div><h4>Kota — Chips, Vienna & Cheese</h4><p class="desc">Vienna sausage and melted cheese layered over golden chips.</p><div class="price">R26</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
+                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Kota — Chips, French & Full Russian" data-price="26">
+              <img src="kota6.jpg" alt="Kota — Chips, French & Full Russian">
+              <div><h4>Kota — Chips, French & Full Russian</h4><p class="desc">Classic kota with chips, french polony, and a full Russian.</p><div class="price">R26</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
+                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Kota — Chips, French, Vienna, Cheese & Egg" data-price="29">
+              <img src="kota7.jpg" alt="Kota — Chips, French, Vienna, Cheese & Egg">
+              <div><h4>Kota — Chips, French, Vienna, Cheese & Egg</h4><p class="desc">Rich kota with chips, french polony, Vienna, cheese, and egg.</p><div class="price">R29</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
+                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Kota — Chips, French, Vienna, Cheese, Egg & Half Russian" data-price="33">
+              <img src="kota8.jpg" alt="Kota — Chips, French, Vienna, Cheese, Egg & Half Russian">
+              <div><h4>Kota — Chips, French, Vienna, Cheese, Egg & Half Russian</h4><p class="desc">Ultimate combo with chips, french polony, Vienna, cheese, egg, and half a Russian.</p><div class="price">R33</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
+                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Kota — Chips, French, Vienna & Full Russian" data-price="30">
+              <img src="kota9.jpg" alt="Kota — Chips, French, Vienna & Full Russian">
+              <div><h4>Kota — Chips, French, Vienna & Full Russian</h4><p class="desc">Loaded kota with chips, french polony, Vienna, and full Russian.</p><div class="price">R30</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
+                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Kota — Chips, French, Vienna, Cheese & Full Russian" data-price="34">
+              <img src="kota10.jpg" alt="Kota — Chips, French, Vienna, Cheese & Full Russian">
+              <div><h4>Kota — Chips, French, Vienna, Cheese & Full Russian</h4><p class="desc">Cheesy indulgence with chips, french polony, Vienna, and full Russian.</p><div class="price">R34</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
+                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Kota — Chips, French, Vienna, Cheese, Full Russian & Egg" data-price="36">
+              <img src="kota11.jpg" alt="Kota — Chips, French, Vienna, Cheese, Full Russian & Egg">
+              <div><h4>Kota — Chips, French, Vienna, Cheese, Full Russian & Egg</h4><p class="desc">Most indulgent: chips, french polony, Vienna, cheese, full Russian, and egg.</p><div class="price">R36</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
+                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+          </div>
+        </section>
+
+        <!-- Chips -->
+        <section id="chips">
+          <h3 class="section-title">Chips</h3>
+          <div class="menu">
+            <article class="card" data-item="Small Chips" data-price="25">
+              <img src="chips1.jpg" alt="Small chips">
+              <div><h4>Small Chips</h4><p class="desc">Crispy golden fries, perfect for a light snack.</p><div class="price">R25</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
+                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Medium Chips" data-price="30">
+              <img src="chips2.jpg" alt="Medium chips">
+              <div><h4>Medium Chips</h4><p class="desc">A generous portion of golden fries to share or enjoy solo.</p><div class="price">R30</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
+                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Large Chips" data-price="40">
+              <img src="chips3.jpg" alt="Large chips">
+              <div><h4>Large Chips</h4><p class="desc">A feast of golden fries, perfect for groups or big appetites.</p><div class="price">R40</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
+                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+          </div>
+        </section>
+
+        <!-- Fish -->
+        <section id="fish">
+          <h3 class="section-title">Fish</h3>
+          <div class="menu">
+            <article class="card" data-item="Fish" data-price="30">
+              <img src="fish1.jpg" alt="Fish">
+              <div><h4>Fish</h4><p class="desc">Freshly fried fish fillet, seasoned to perfection.</p><div class="price">R30</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Fish seasoning</div><div class="chips" data-type="fish-seasoning"><div class="chip">Salt</div><div class="chip">Vinegar</div><div class="chip">Lime Slice</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Fish & Chips" data-price="55">
+              <img src="fish2.jpg" alt="Fish and chips">
+              <div><h4>Fish & Chips</h4><p class="desc">Golden fried fish paired with a hearty portion of chips.</p><div class="price">R55</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <div class="options">
+                <div class="option-group"><div class="option-label">Fish seasoning</div><div class="chips" data-type="fish-seasoning"><div class="chip">Salt</div><div class="chip">Vinegar</div><div class="chip">Lime Slice</div></div></div>
+                <div class="option-group"><div class="option-label">Chips seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
+                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+              </div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+          </div>
+        </section>
+
+        <!-- Sandwiches -->
+        <section id="sandwiches">
+          <h3 class="section-title">Sandwiches</h3>
+          <div class="menu">
+            <article class="card" data-item="Sandwich — Cheese & Tomato" data-price="18">
+              <img src="sandwich1.jpg" alt="Cheese & Tomato sandwich">
+              <div><h4>Cheese & Tomato</h4><p class="desc">Classic toasted sandwich with melted cheese and fresh tomato.</p><div class="price">R18</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Sandwich — Cheese, Egg & Tomato" data-price="23">
+              <img src="sandwich2.jpg" alt="Cheese, Egg & Tomato sandwich">
+              <div><h4>Cheese, Egg & Tomato</h4><p class="desc">A hearty toastie with cheese, fried egg, and tomato.</p><div class="price">R23</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Sandwich — Cheese & Bacon" data-price="26">
+              <img src="sandwich3.jpg" alt="Cheese & Bacon sandwich">
+              <div><h4>Cheese & Bacon</h4><p class="desc">Smoky bacon and melted cheese in a toasted sandwich.</p><div class="price">R26</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Sandwich — Cheese, Bacon & Egg" data-price="32">
+              <img src="sandwich4.jpg" alt="Cheese, Bacon & Egg sandwich">
+              <div><h4>Cheese, Bacon & Egg</h4><p class="desc">A breakfast favorite with bacon, cheese, and egg.</p><div class="price">R32</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Sandwich — Chicken & Mayo" data-price="30">
+              <img src="sandwich5.jpg" alt="Chicken & Mayo sandwich">
+              <div><h4>Chicken & Mayo</h4><p class="desc">Tender chicken mixed with creamy mayo in toasted bread.</p><div class="price">R30</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+
+            <article class="card" data-item="Sandwich — Dagwood" data-price="55">
+              <img src="sandwich6.jpg" alt="Dagwood sandwich">
+              <div><h4>Dagwood</h4><p class="desc">The ultimate stacked sandwich with layers of meat, cheese, and egg.</p><div class="price">R55</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+          </div>
+        </section>
+
+        <!-- Extras -->
+        <section id="extras">
+          <h3 class="section-title">Extras</h3>
+          <div class="menu">
+            <article class="card" data-item="Extra — Russian" data-price="15">
+              <img src="extra1.jpg" alt="Russian extra">
+              <div><h4>Russian (extra)</h4><p class="desc">Add a juicy Russian sausage to any meal.</p><div class="price">R15</div></div>
+              <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
+              <button class="add-btn">Add to cart</button>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <!-- Cart -->
+      <aside id="cart" class="cart">
+        <div class="order-meta">
+          <div>Order ID: <span id="order-number"></span></div>
+          <div><span id="live-time"></span></div>
+        </div>
+
+        <h3>Your Cart</h3>
+        <div id="cart-items" class="cart-items"></div>
+
+        <div class="summary">
+          <div class="summary-row"><span>Subtotal</span><span>R<span id="subtotal">0</span></span></div>
+
+          <div class="delivery-toggle" id="delivery-toggle">
+            <div class="toggle-option active" data-mode="collection">
+              Collection at Nzuri Café — Free
+              <small>11:00–20:30</small>
+            </div>
+            <div class="toggle-option" data-mode="delivery">
+              Delivery to Ekhaya Junction — R7
+              <small>15:00–20:30</small>
+            </div>
+          </div>
+
+          <div id="room-field" class="input-field" style="display:none;">
+            <input type="text" id="room" placeholder="Ekhaya Junction room number (e.g., Block A, Room 42)" />
+          </div>
+
+          <div class="input-field">
+            <input type="text" id="name" placeholder="Your name" />
+          </div>
+
+          <div class="input-field">
+            <input type="tel" id="phone" placeholder="Your phone number" />
+          </div>
+
+          <div class="input-field">
+            <input type="number" id="tip" min="0" step="1" placeholder="Tip amount (optional)" />
+          </div>
+
+          <div class="summary-row"><span>Delivery fee</span><span>R<span id="delivery-fee">0</span></span></div>
+          <div class="summary-row summary-total"><span>Total</span><span>R<span id="total">0</span></span></div>
+        </div>
+
+        <button class="checkout-btn" onclick="checkout()">Order via WhatsApp</button>
+        <button class="clear-btn" onclick="clearCart()">Clear cart</button>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Footer with hover contact -->
+  <footer class="footer">
+    <div class="footer-text">
+      Nzuri Café • <span class="author">Made by DrMcGi</span>
+      <span class="contact">064 921 1745 • giftk.rantho@gmail.com</span>
+    </div>
+  </footer>
+
+  <script>
+    const WHATSAPP_NUMBER = '27790717794'; // Intl format without '+'
+    const DELIVERY_FEE = 7;
+
+    let cart = [];
+    let orderSeq = 1;
+    let deliveryMode = 'collection';
+
+    // Live time + order ID
+    function todayStamp(){
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return `${yyyy}${mm}${dd}`;
+    }
+    const pad3 = n => String(n).padStart(3,'0');
+    const generateOrderId = () => `nzuri-${todayStamp()}-${pad3(orderSeq)}`;
+
+    function updateLiveTime(){
+      const d = new Date();
+      const h = String(d.getHours()).padStart(2,'0');
+      const m = String(d.getMinutes()).padStart(2,'0');
+      const s = String(d.getSeconds()).padStart(2,'0');
+      const el = document.getElementById('live-time');
+      if(el) el.textContent = `${h}:${m}:${s}`;
+    }
+    setInterval(updateLiveTime, 500);
+    updateLiveTime();
+    document.getElementById('order-number').textContent = generateOrderId();
+
+    // Header compact on hero out of view
+    const header = document.getElementById('app-header');
+    const hero = document.getElementById('hero');
+    const headerObserver = new IntersectionObserver(entries=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){ header.classList.remove('compact'); }
+        else{ header.classList.add('compact'); }
+      });
+    },{root:null,threshold:0.05});
+    headerObserver.observe(hero);
+
+    // Delivery segmented toggle
+    const toggleEl = document.getElementById('delivery-toggle');
+    toggleEl.querySelectorAll('.toggle-option').forEach(opt=>{
+      opt.addEventListener('click', ()=>{
+        toggleEl.querySelectorAll('.toggle-option').forEach(o=>o.classList.remove('active'));
+        opt.classList.add('active');
+        deliveryMode = opt.dataset.mode;
+        document.getElementById('delivery-fee').textContent = deliveryMode==='delivery' ? DELIVERY_FEE : 0;
+        document.getElementById('room-field').style.display = deliveryMode==='delivery' ? 'block' : 'none';
+        updateTotals();
+      });
+    });
+
+    // Item cards logic
+    document.querySelectorAll('.card').forEach(card=>{
+      const item = card.dataset.item;
+      const price = parseFloat(card.dataset.price);
+
+      const subBtn = card.querySelector('.btn-sub');
+      const addBtn = card.querySelector('.btn-add');
+      const qtyDisplay = card.querySelector('.qty-display');
+      const options = card.querySelector('.options'); // may be null
+      const addCartBtn = card.querySelector('.add-btn');
+
+      let qty = 0;
+
+      function showConfig(show){
+        if(options){ options.style.display = show ? 'block' : 'none'; }
+        if(addCartBtn){ addCartBtn.style.display = show ? 'inline-block' : 'none'; }
+      }
+
+      subBtn.addEventListener('click', ()=>{
+        if(qty>0){ qty--; qtyDisplay.textContent = qty; }
+        if(qty===0){ showConfig(false); }
+      });
+
+      addBtn.addEventListener('click', ()=>{
+        qty++; qtyDisplay.textContent = qty;
+        if(qty>0){ showConfig(true); }
+      });
+
+      // Chip toggles (if options exist)
+      if(options){
+        options.querySelectorAll('.chip').forEach(chip=>{
+          chip.addEventListener('click', ()=>chip.classList.toggle('active'));
+        });
+      }
+
+      // Add to cart with fly-to-cart animation
+      addCartBtn.addEventListener('click', ()=>{
+        if(qty<=0) return;
+
+        const cfg = { seasoning:[], sauce:[], fishSeasoning:[] };
+        if(options){
+          options.querySelectorAll('.chips').forEach(group=>{
+            const type = group.dataset.type;
+            const selected = Array.from(group.querySelectorAll('.chip.active')).map(c=>c.textContent);
+            if(type==='seasoning') cfg.seasoning = selected;
+            if(type==='sauce') cfg.sauce = selected;
+            if(type==='fish-seasoning') cfg.fishSeasoning = selected;
+          });
+        }
+
+        cart.push({ item, price, qty, options: cfg });
+
+        // Fly image animation toward cart badge
+        const img = card.querySelector('img');
+        const badge = document.getElementById('cart-count');
+        if(img && badge){
+          const rect = img.getBoundingClientRect();
+          const badgeRect = badge.getBoundingClientRect();
+          const clone = img.cloneNode(true);
+          clone.classList.add('fly-img');
+          clone.style.top = rect.top + 'px';
+          clone.style.left = rect.left + 'px';
+          clone.style.width = rect.width + 'px';
+          document.body.appendChild(clone);
+          requestAnimationFrame(()=>{
+            const dx = (badgeRect.left + badgeRect.width/2) - (rect.left + rect.width/2);
+            const dy = (badgeRect.top + badgeRect.height/2) - (rect.top + rect.height/2);
+            clone.style.transform = `translate(${dx}px, ${dy}px) scale(0.2)`;
+            clone.style.opacity = '0';
+          });
+          clone.addEventListener('transitionend', ()=>clone.remove());
+        }
+
+        // Reset local state
+        qty = 0; qtyDisplay.textContent = 0;
+        showConfig(false);
+        if(options){ options.querySelectorAll('.chip.active').forEach(c=>c.classList.remove('active')); }
+
+        renderCart(true); // update UI
+      });
+    });
+
+    function renderCart(animateBadge=false){
+      const itemsDiv = document.getElementById('cart-items');
+      itemsDiv.innerHTML = '';
+
+      if(cart.length===0){
+        itemsDiv.innerHTML = '<div class="tag" style="color:#a8b0bd">Your cart is empty. Add items with +, configure, then “Add to cart”.</div>';
+      } else {
+        cart.forEach((line, idx)=>{
+          const lineTotal = line.price * line.qty;
+          const opts = [];
+          if(line.options.fishSeasoning?.length) opts.push(`Fish: ${line.options.fishSeasoning.join(', ')}`);
+          if(line.options.seasoning?.length) opts.push(`Seasoning: ${line.options.seasoning.join(', ')}`);
+          if(line.options.sauce?.length) opts.push(`Sauce: ${line.options.sauce.join(', ')}`);
+          const variantText = opts.length ? `(${opts.join(' • ')})` : '';
+
+          const row = document.createElement('div');
+          row.className = 'cart-item';
+          row.innerHTML = `
+            <div>${line.item} ×${line.qty} <span class="variant">${variantText}</span></div>
+            <div class="line-total">R${lineTotal}</div>
+            <div style="display:flex;gap:6px;">
+              <button class="remove-one">Remove 1</button>
+              ${line.qty>1 ? '<button class="remove-all">Clear all</button>' : ''}
+            </div>
+          `;
+
+          row.querySelector('.remove-one').addEventListener('click', ()=>{
+            line.qty -= 1;
+            if(line.qty<=0){ cart.splice(idx,1); }
+            renderCart(true);
+          });
+
+          const clearAllBtn = row.querySelector('.remove-all');
+          if(clearAllBtn){
+            clearAllBtn.addEventListener('click', ()=>{
+              cart.splice(idx,1);
+              renderCart(true);
+            });
+          }
+
+          itemsDiv.appendChild(row);
+        });
+      }
+
+      // Update order ID sequence
+      orderSeq += 1;
+      document.getElementById('order-number').textContent = generateOrderId();
+
+      // Update totals and header badge
+      updateTotals();
+      updateHeaderBadge(animateBadge);
+    }
+
+    function updateHeaderBadge(animate=false){
+      const count = cart.reduce((sum,l)=>sum+l.qty,0);
+      const badge = document.getElementById('cart-count');
+      badge.textContent = count;
+      if(animate){
+        badge.classList.remove('bump');
+        void badge.offsetWidth;
+        badge.classList.add('bump');
+      }
+    }
+
+    function getSubtotal(){
+      return cart.reduce((sum,l)=>sum + l.price*l.qty, 0);
+    }
+
+    function updateTotals(){
+      const subtotal = getSubtotal();
+      const tipVal = parseFloat(document.getElementById('tip').value || 0) || 0;
+      const delFee = deliveryMode==='delivery' ? DELIVERY_FEE : 0;
+      const total = subtotal + delFee + tipVal;
+
+      document.getElementById('subtotal').textContent = Math.round(subtotal);
+      document.getElementById('delivery-fee').textContent = delFee;
+      document.getElementById('total').textContent = Math.round(total);
+    }
+
+    function clearCart(){
+      cart = [];
+      renderCart(true);
+    }
+
+    function checkout(){
+      if(cart.length===0){ alert('Your cart is empty.'); return; }
+      if(deliveryMode==='delivery'){
+        const room = (document.getElementById('room').value || '').trim();
+        if(room.length===0){ alert('Please enter your Ekhaya Junction room number for delivery.'); return; }
+      }
+
+      const orderId = document.getElementById('order-number').textContent;
+      const name = (document.getElementById('name').value || '').trim();
+      const phone = (document.getElementById('phone').value || '').trim();
+      const tipVal = parseFloat(document.getElementById('tip').value || 0) || 0;
+      const subtotal = getSubtotal();
+      const delFee = deliveryMode==='delivery' ? DELIVERY_FEE : 0;
+      const total = subtotal + delFee + tipVal;
+
+      const lines = [];
+      lines.push(`Order ID: ${orderId}`);
+      lines.push(`Name: ${name || '—'}`);
+      lines.push(`Phone: ${phone || '—'}`);
+      lines.push(`Mode: ${deliveryMode==='delivery' ? 'Delivery (Ekhaya Junction only, R7)' : 'Collection at Nzuri Café (Ekhaya Junction)'}`);
+      if(deliveryMode==='delivery'){
+        lines.push(`Room: ${(document.getElementById('room').value || '').trim()}`);
+      }
+      lines.push('');
+      lines.push('Items:');
+      cart.forEach(l=>{
+        const opts = [];
+        if(l.options.fishSeasoning?.length) opts.push(`Fish: ${l.options.fishSeasoning.join(', ')}`);
+        if(l.options.seasoning?.length) opts.push(`Seasoning: ${l.options.seasoning.join(', ')}`);
+        if(l.options.sauce?.length) opts.push(`Sauce: ${l.options.sauce.join(', ')}`);
+        const variant = opts.length ? ` (${opts.join(' • ')})` : '';
+        lines.push(`• ${l.item} ×${l.qty}${variant} — R${l.price*l.qty}`);
+      });
+      lines.push('');
+      lines.push(`Subtotal: R${subtotal}`);
+      lines.push(`Delivery fee: R${delFee}`);
+      lines.push(`Tip: R${tipVal}`);
+      lines.push(`Total: R${total}`);
+      lines.push('');
+      lines.push('Payment: Cash or digital on delivery/collection.');
+      lines.push('Location: Nzuri Café, Ekhaya Junction Residence, TUT Campus.');
+      lines.push('Thank you!');
+
+      const msg = encodeURIComponent(lines.join('\n'));
+      const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+      window.location.href = waUrl;
+    }
+
+    /* Correct category tab highlighting using scroll position (single active at a time) */
+    const sections = Array.from(document.querySelectorAll('section'));
+    const navLinks = Array.from(document.querySelectorAll('.categories a'));
+
+    function activateTab(id){
+      navLinks.forEach(link => link.classList.remove('active'));
+      const activeLink = document.querySelector(`.categories a[href="#${id}"]`);
+      if(activeLink) activeLink.classList.add('active');
+    }
+
+    function onScrollActivate(){
+      // Offset to account for sticky header + tabs height
+      const offset = 120;
+      let currentId = sections[0]?.id || 'kotas';
+
+      for(const sec of sections){
+        const rect = sec.getBoundingClientRect();
+        if(rect.top <= offset && rect.bottom > offset){
+          currentId = sec.id;
+          break;
+        }
+      }
+      activateTab(currentId);
+    }
+
+    window.addEventListener('scroll', onScrollActivate, { passive:true });
+
+    // Click behavior: make sure only one active, then smooth scroll
+    navLinks.forEach(link=>{
+      link.addEventListener('click', (e)=>{
+        // Allow default anchor, but we briefly set active for immediate feedback
+        navLinks.forEach(l=>l.classList.remove('active'));
+        link.classList.add('active');
+      });
+    });
+
+    // Initialize
+    function init(){
+      updateLiveTime();
+      document.getElementById('order-number').textContent = generateOrderId();
+      renderCart(false);
+      document.getElementById('tip').addEventListener('input', updateTotals);
+
+      // Default active to Kotas on load
+      activateTab('kotas');
+      onScrollActivate();
+    }
+    init();
+  </script>
+</body>
+</html>
+```
