@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Nzuri Café — Luxury Campus Ordering</title>
   <meta name="description" content="Nzuri Café at Ekhaya Junction (TUT). Luxury cart with WhatsApp checkout for Kotas, Chips, Fish, and Sandwiches." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2238%22 fill=%22%23c8a96a%22/></svg>">
   <style>
     :root{
       --bg:#0f1115; --card:#151821; --soft:#1b1f2a; --deep:#0b0d12;
@@ -34,11 +35,11 @@
     header.nav.compact .logo{transform:scale(0.9)}
     .title{font-weight:800;letter-spacing:0.3px}
     .tag{color:var(--muted);font-size:13px}
-    .cta-bar{display:flex;gap:10px;align-items:center}
+    .cta-bar{position:relative;display:flex;gap:10px;align-items:center}
     .cta{
       padding:10px 16px;border:1px solid rgba(200,169,106,0.35);
       border-radius:999px;background:linear-gradient(180deg,#1f232c,var(--soft));
-      font-weight:600;color:var(--text)
+      font-weight:600;color:var(--text);position:relative
     }
     .cta.primary{background:linear-gradient(180deg,#2a2f3a,#1c2029);border-color:var(--gold)}
     .cart-badge{
@@ -46,26 +47,45 @@
       border-radius:999px;padding:2px 8px;margin-left:6px;font-size:12px;
       display:inline-block;min-width:20px;text-align:center
     }
+    .cart-badge.bump{animation:bump .25s ease}
+    @keyframes bump{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
 
-    /* Category tabs under header (no cut off) */
-    .categories{
+    /* Category tabs under header */
+    nav.categories{
       position:sticky;top:66px;z-index:95;
       display:flex;gap:12px;justify-content:center;
       background:var(--bg);padding:10px 16px;
       border-bottom:1px solid rgba(200,169,106,0.12);
       transition:top .18s ease, padding .18s ease;
     }
-    header.nav.compact + .categories{top:56px;padding:8px 12px}
-    .categories a{
+    header.nav.compact + nav.categories{top:56px;padding:8px 12px}
+    nav.categories a{
       padding:8px 16px;border-radius:999px;
       background:linear-gradient(180deg,#1f232c,var(--soft));
       border:1px solid rgba(200,169,106,0.3);
       font-weight:600;color:var(--text);transition:all .2s ease
     }
-    .categories a.active,.categories a:hover{background:var(--gold);color:#111}
+    nav.categories a.active,nav.categories a:hover{background:var(--gold);color:#111}
 
-    /* Hero preserved */
-    .container{max-width:1100px;margin:0 auto;padding:26px}
+    /* Cart preview dropdown */
+    .cart-preview {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: #1a1e27;
+      border: 1px solid rgba(200,169,106,0.3);
+      border-radius: 10px;
+      padding: 10px;
+      min-width: 220px;
+      display: none;
+      font-size: 13px;
+      z-index: 200;
+      box-shadow:0 12px 30px rgba(0,0,0,0.5);
+    }
+    .cta.primary:hover .cart-preview { display: block; }
+
+    /* Layout */
+    main.container{max-width:1100px;margin:0 auto;padding:26px}
     .hero{display:grid;grid-template-columns:1.1fr 0.9fr;gap:22px;padding:26px 0}
     .panel{
       background:linear-gradient(180deg,var(--card),var(--soft));
@@ -83,10 +103,8 @@
       padding:12px 16px;border:none;border-radius:12px;cursor:pointer;text-decoration:none;
       box-shadow:0 8px 24px rgba(37,211,102,0.25)
     }
-
     .divider{height:1px;background:linear-gradient(90deg, rgba(200,169,106,0), rgba(200,169,106,0.35), rgba(200,169,106,0));margin:24px 0}
 
-    /* Layout: content + cart */
     .section-wrap{display:grid;grid-template-columns:1fr 380px;gap:22px}
     @media (max-width:1000px){.section-wrap{grid-template-columns:1fr}}
 
@@ -139,12 +157,13 @@
       transition: transform 0.8s cubic-bezier(0.55, 0.06, 0.68, 0.19), opacity 0.8s;
     }
 
-    /* Cart */
+    /* Cart (fixed checkout always inline) */
     aside.cart{
-      position:sticky; top:126px;
+      position: static;
       background:linear-gradient(180deg,var(--card),var(--deep));
       border:1px solid rgba(200,169,106,0.25);border-radius:18px;padding:16px;
       box-shadow:0 20px 50px rgba(0,0,0,0.45);
+      margin-top: 20px;
     }
     .cart h3{margin:0 0 10px;font-size:18px;font-weight:800}
     .order-meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);margin-bottom:10px}
@@ -175,21 +194,30 @@
     .toggle-option.active{background:linear-gradient(180deg,#e9d9b0,var(--gold));color:#111;border-color:var(--gold);box-shadow:0 6px 18px rgba(200,169,106,0.25)}
     .toggle-option.active small{color:#111}
 
-    /* Checkout buttons: WhatsApp green + Clear cart red */
+    /* Checkout buttons */
     .checkout-btn{
       margin-top:12px;padding:12px;width:100%;
-      background:linear-gradient(180deg,#33e27a,var(--wa-green));
+      background: linear-gradient(270deg, #33e27a, #25D366, #33e27a);
+      background-size: 600% 600%;
+      animation: gradientShift 6s ease infinite;
       color:#092611;font-weight:800;border:none;border-radius:12px;cursor:pointer;
       box-shadow:0 12px 30px rgba(37,211,102,0.25);
+      transition: all 0.25s ease;
+    }
+    .checkout-btn:disabled{
+      background:linear-gradient(180deg,#3b4a3f,#2a332b);
+      color:#9fb2a3; cursor:not-allowed; box-shadow:none;
+      animation: none;
     }
     .clear-btn{
       margin-top:8px;padding:10px;width:100%;
       background:linear-gradient(180deg,#9e3b3b,var(--danger));
-      color:#fff;font-weight:800;border:none;border-radius:12px;cursor:pointer
+      color:#fff;font-weight:800;border:none;border-radius:12px;cursor:pointer;
+      transition: all 0.25s ease;
     }
 
     /* Footer with hover contact */
-    .footer{
+    footer.footer{
       margin-top:40px;
       padding:20px;
       text-align:center;
@@ -212,12 +240,142 @@
       content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);
       border-width:6px;border-style:solid;border-color:#1a1e27 transparent transparent transparent;
     }
+
+    /* CLEAR CART MODAL */
+    .modal {
+      position: fixed; top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center;
+      visibility: hidden; opacity: 0; transition: opacity .2s;
+      z-index: 1000;
+    }
+    .modal[aria-hidden="false"] { visibility: visible; opacity: 1; }
+    .modal-content {
+      background: #151821; padding: 20px; border-radius: 12px;
+      border: 1px solid rgba(200,169,106,0.3);
+      text-align: center; max-width: 340px;
+    }
+    .modal-actions{display:flex;gap:10px;justify-content:center;margin-top:12px}
+    .modal-actions button{padding:10px 14px;border:none;border-radius:10px;font-weight:800;cursor:pointer}
+    .modal .confirm{background:linear-gradient(180deg,#9e3b3b,var(--danger));color:#fff}
+    .modal .cancel{background:linear-gradient(180deg,#2a2f3a,#1c2029);color:#e8ecf1;border:1px solid rgba(200,169,106,0.25)}
+
+    /* RESPONSIVE (no fixed cart override on mobile) */
+    @media (max-width: 768px) {
+      nav.categories { overflow-x: auto; white-space: nowrap; }
+      nav.categories a { flex: 0 0 auto; }
+      .hero{grid-template-columns:1fr}
+      /* Keep cart inline on mobile */
+    }
+
+    /* Floating cart toggle + polish */
+    .floating-cart-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--gold);
+      color: #111;
+      font-weight: 800;
+      padding: 12px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      z-index: 1200;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .floating-cart-toggle.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(20px);
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(200,169,106,0.7); }
+      70% { box-shadow: 0 0 0 12px rgba(200,169,106,0); }
+      100% { box-shadow: 0 0 0 0 rgba(200,169,106,0); }
+    }
+    .floating-cart-toggle.pulse { animation: pulse 1.5s infinite; }
+
+    /* Floating cart panel (expandable on demand) */
+    .floating-cart-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0; right: 0;
+      max-height: 70%;
+      background: linear-gradient(180deg,var(--card),var(--deep));
+      border-top: 2px solid var(--gold);
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.5);
+      transform: translateY(100%);
+      transition: transform .3s ease;
+      z-index: 1300;
+      overflow-y: auto;
+      padding: 16px;
+      border-radius: 18px 18px 0 0;
+    }
+    .floating-cart-panel.expanded {
+      transform: translateY(0);
+      animation: slideUp 0.4s ease-out;
+    }
+    @keyframes slideUp {
+      0% { transform: translateY(100%); }
+      80% { transform: translateY(-5%); }
+      100% { transform: translateY(0); }
+    }
+    .floating-cart-panel .close-cart-btn {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background: var(--danger);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      font-size: 20px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Cart item hover polish */
+    .cart-item:hover {
+      background: #20242f;
+      box-shadow: 0 0 10px rgba(200,169,106,0.3);
+      transform: scale(1.01);
+      transition: all 0.2s ease;
+    }
+
+    /* Animated gradient for checkout button */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Category hover glow */
+    nav.categories a:hover { box-shadow: 0 0 10px rgba(200,169,106,0.5); transform: translateY(-2px); }
+    nav.categories a.active { box-shadow: 0 0 14px rgba(200,169,106,0.7); }
+
+    /* Button hover glow */
+    button.checkout-btn:hover,
+    button.clear-btn:hover,
+    .btn-add:hover,
+    .btn-sub:hover,
+    .add-btn:hover {
+      box-shadow: 0 0 12px rgba(200,169,106,0.6), 0 0 24px rgba(200,169,106,0.4);
+      transform: translateY(-2px);
+    }
+
+    /* Chip active glow */
+    .chip.active { box-shadow: 0 0 8px rgba(200,169,106,0.6); transform: scale(1.05); }
   </style>
 </head>
 <body>
   <!-- Sticky header -->
-  <header class="nav" id="app-header">
-    <div class="brand">
+  <header class="nav" id="app-header" aria-label="Nzuri Café navigation">
+    <div class="brand" aria-label="Brand">
       <div class="logo" aria-hidden="true"></div>
       <div>
         <div class="title">Nzuri Café</div>
@@ -225,13 +383,16 @@
       </div>
     </div>
     <div class="cta-bar">
-      <a class="cta" href="#menu">View menu</a>
-      <a class="cta primary" href="#cart">View cart <span id="cart-count" class="cart-badge">0</span></a>
+      <a class="cta" href="#menu" aria-label="View menu">View menu</a>
+      <a class="cta primary" href="#cart" aria-label="View cart and checkout">
+        View cart <span id="cart-count" class="cart-badge" aria-live="polite">0</span>
+        <div id="cart-preview" class="cart-preview" role="tooltip" aria-hidden="true"></div>
+      </a>
     </div>
   </header>
 
   <!-- Category tabs -->
-  <nav class="categories" id="cat-bar">
+  <nav class="categories" id="cat-bar" aria-label="Menu categories">
     <a href="#kotas">Kotas</a>
     <a href="#chips">Chips</a>
     <a href="#fish">Fish</a>
@@ -239,155 +400,200 @@
     <a href="#extras">Extras</a>
   </nav>
 
-  <!-- Hero preserved -->
-  <div class="container">
-    <div class="hero" id="hero">
+  <!-- Hero -->
+  <main class="container" role="main">
+    <section class="hero" id="hero" aria-label="Introduction and ordering details">
       <div class="panel">
         <h1 class="headline">Luxury taste, campus convenience.</h1>
         <p class="sub">Kotas, Chips, Fish & Sandwiches—crafted fresh at Ekhaya Junction Residence, TUT Campus. Build cart, choose collection or delivery to Ekhaya (R7), and finalize on WhatsApp.</p>
-        <div class="notes">
-          <div class="pill">Open daily: 8:00–21:00</div>
+        <div class="notes" aria-label="Highlights">
+          <div class="pill">Open daily: 08:00–21:00</div>
           <div class="pill">Collection at Nzuri Café (Ekhaya Junction)</div>
           <div class="pill">Delivery: Ekhaya Junction rooms only (R7)</div>
           <div class="pill">WhatsApp-first checkout</div>
         </div>
       </div>
-      <div class="panel" style="background:linear-gradient(180deg,#17321d,#132818);">
+      <div class="panel" style="background:linear-gradient(180deg,#17321d,#132818);" aria-label="WhatsApp ordering">
         <h2 class="headline" style="font-size:22px">Order via cart + WhatsApp</h2>
         <p class="sub">Use +/– to set quantity. Choose seasonings/sauces. Add variants to cart. Checkout sends a prefilled WhatsApp message.</p>
-        <a class="wa-btn" href="https://wa.me/27790717794?text=Hello%20Nzuri%20Caf%C3%A9%2C%20I%27m%20ready%20to%20order.">WhatsApp: 079 071 7794</a>
+        <a class="wa-btn" href="https://wa.me/27790717794?text=Hello%20Nzuri%20Caf%C3%A9%2C%20I%27m%20ready%20to%20order." aria-label="Message Nzuri Café on WhatsApp">WhatsApp: 079 071 7794</a>
         <div class="notes">
           <div class="pill">Order ID: nzuri-YYYYMMDD-###</div>
         </div>
       </div>
-    </div>
+    </section>
 
     <div id="menu" class="divider" aria-hidden="true"></div>
 
-    <!-- Menu + Cart -->
-    <div class="section-wrap">
+    <!-- Menu + Fixed Cart -->
+    <section class="section-wrap" aria-label="Menu and cart">
       <div>
         <!-- Kotas -->
-        <section id="kotas">
+        <section id="kotas" aria-label="Kotas">
           <h3 class="section-title">Kotas</h3>
-          <div class="menu">
-            <article class="card" data-item="Kota — Chips & French" data-price="18">
+          <div class="menu" role="list">
+            <!-- Repeatable Kota cards -->
+            <article class="card" data-item="Kota — Chips & French" data-price="18" role="listitem">
               <img src="kota1.jpg" alt="Kota — Chips & French">
               <div><h4>Kota — Chips & French</h4><p class="desc">Classic kota with golden chips and french polony.</p><div class="price">R18</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
-                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+                <div class="option-group"><div class="option-label">Seasoning</div>
+                  <div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Sauce</div>
+                  <div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Kota — Chips, French & Half Russian" data-price="23">
+            <article class="card" data-item="Kota — Chips, French & Half Russian" data-price="23" role="listitem">
               <img src="kota2.jpg" alt="Kota — Chips, French & Half Russian">
               <div><h4>Kota — Chips, French & Half Russian</h4><p class="desc">Hearty kota packed with chips, french polony, and half a Russian.</p><div class="price">R23</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
-                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+                <div class="option-group"><div class="option-label">Seasoning</div>
+                  <div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Sauce</div>
+                  <div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Kota — Chips, French & Vienna" data-price="23">
+            <article class="card" data-item="Kota — Chips, French & Vienna" data-price="23" role="listitem">
               <img src="kota3.jpg" alt="Kota — Chips, French & Vienna">
               <div><h4>Kota — Chips, French & Vienna</h4><p class="desc">Crispy chips and french polony paired with a tender Vienna.</p><div class="price">R23</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
-                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+                <div class="option-group"><div class="option-label">Seasoning</div>
+                  <div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Sauce</div>
+                  <div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Kota — Chips, French, Vienna & Half Russian" data-price="28">
+            <article class="card" data-item="Kota — Chips, French, Vienna & Half Russian" data-price="28" role="listitem">
               <img src="kota4.jpg" alt="Kota — Chips, French, Vienna & Half Russian">
               <div><h4>Kota — Chips, French, Vienna & Half Russian</h4><p class="desc">Deluxe stack of chips, french polony, Vienna, and half a Russian.</p><div class="price">R28</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
-                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+                <div class="option-group"><div class="option-label">Seasoning</div>
+                  <div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Sauce</div>
+                  <div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Kota — Chips, Vienna & Cheese" data-price="26">
+            <article class="card" data-item="Kota — Chips, Vienna & Cheese" data-price="26" role="listitem">
               <img src="kota5.jpg" alt="Kota — Chips, Vienna & Cheese">
               <div><h4>Kota — Chips, Vienna & Cheese</h4><p class="desc">Vienna sausage and melted cheese layered over golden chips.</p><div class="price">R26</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
-                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+                <div class="option-group"><div class="option-label">Seasoning</div>
+                  <div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Sauce</div>
+                  <div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Kota — Chips, French & Full Russian" data-price="26">
+            <article class="card" data-item="Kota — Chips, French & Full Russian" data-price="26" role="listitem">
               <img src="kota6.jpg" alt="Kota — Chips, French & Full Russian">
               <div><h4>Kota — Chips, French & Full Russian</h4><p class="desc">Classic kota with chips, french polony, and a full Russian.</p><div class="price">R26</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
-                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+                <div class="option-group"><div class="option-label">Seasoning</div>
+                  <div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Sauce</div>
+                  <div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Kota — Chips, French, Vienna, Cheese & Egg" data-price="29">
+            <article class="card" data-item="Kota — Chips, French, Vienna, Cheese & Egg" data-price="29" role="listitem">
               <img src="kota7.jpg" alt="Kota — Chips, French, Vienna, Cheese & Egg">
               <div><h4>Kota — Chips, French, Vienna, Cheese & Egg</h4><p class="desc">Rich kota with chips, french polony, Vienna, cheese, and egg.</p><div class="price">R29</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
-                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+                <div class="option-group"><div class="option-label">Seasoning</div>
+                  <div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Sauce</div>
+                  <div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Kota — Chips, French, Vienna, Cheese, Egg & Half Russian" data-price="33">
+            <article class="card" data-item="Kota — Chips, French, Vienna, Cheese, Egg & Half Russian" data-price="33" role="listitem">
               <img src="kota8.jpg" alt="Kota — Chips, French, Vienna, Cheese, Egg & Half Russian">
               <div><h4>Kota — Chips, French, Vienna, Cheese, Egg & Half Russian</h4><p class="desc">Ultimate combo with chips, french polony, Vienna, cheese, egg, and half a Russian.</p><div class="price">R33</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
-                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+                <div class="option-group"><div class="option-label">Seasoning</div>
+                  <div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Sauce</div>
+                  <div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Kota — Chips, French, Vienna & Full Russian" data-price="30">
+            <article class="card" data-item="Kota — Chips, French, Vienna & Full Russian" data-price="30" role="listitem">
               <img src="kota9.jpg" alt="Kota — Chips, French, Vienna & Full Russian">
               <div><h4>Kota — Chips, French, Vienna & Full Russian</h4><p class="desc">Loaded kota with chips, french polony, Vienna, and full Russian.</p><div class="price">R30</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
-                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+                <div class="option-group"><div class="option-label">Seasoning</div>
+                  <div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Sauce</div>
+                  <div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Kota — Chips, French, Vienna, Cheese & Full Russian" data-price="34">
+            <article class="card" data-item="Kota — Chips, French, Vienna, Cheese & Full Russian" data-price="34" role="listitem">
               <img src="kota10.jpg" alt="Kota — Chips, French, Vienna, Cheese & Full Russian">
               <div><h4>Kota — Chips, French, Vienna, Cheese & Full Russian</h4><p class="desc">Cheesy indulgence with chips, french polony, Vienna, and full Russian.</p><div class="price">R34</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
-                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+                <div class="option-group"><div class="option-label">Seasoning</div>
+                  <div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Sauce</div>
+                  <div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Kota — Chips, French, Vienna, Cheese, Full Russian & Egg" data-price="36">
+            <article class="card" data-item="Kota — Chips, French, Vienna, Cheese, Full Russian & Egg" data-price="36" role="listitem">
               <img src="kota11.jpg" alt="Kota — Chips, French, Vienna, Cheese, Full Russian & Egg">
               <div><h4>Kota — Chips, French, Vienna, Cheese, Full Russian & Egg</h4><p class="desc">Most indulgent: chips, french polony, Vienna, cheese, full Russian, and egg.</p><div class="price">R36</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
-                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+                <div class="option-group"><div class="option-label">Seasoning</div>
+                  <div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Sauce</div>
+                  <div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
@@ -395,38 +601,50 @@
         </section>
 
         <!-- Chips -->
-        <section id="chips">
+        <section id="chips" aria-label="Chips">
           <h3 class="section-title">Chips</h3>
-          <div class="menu">
-            <article class="card" data-item="Small Chips" data-price="25">
+          <div class="menu" role="list">
+            <article class="card" data-item="Small Chips" data-price="25" role="listitem">
               <img src="chips1.jpg" alt="Small chips">
               <div><h4>Small Chips</h4><p class="desc">Crispy golden fries, perfect for a light snack.</p><div class="price">R25</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
-                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+                <div class="option-group"><div class="option-label">Seasoning</div>
+                  <div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Sauce</div>
+                  <div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Medium Chips" data-price="30">
+            <article class="card" data-item="Medium Chips" data-price="30" role="listitem">
               <img src="chips2.jpg" alt="Medium chips">
               <div><h4>Medium Chips</h4><p class="desc">A generous portion of golden fries to share or enjoy solo.</p><div class="price">R30</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
-                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+                <div class="option-group"><div class="option-label">Seasoning</div>
+                  <div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Sauce</div>
+                  <div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Large Chips" data-price="40">
+            <article class="card" data-item="Large Chips" data-price="40" role="listitem">
               <img src="chips3.jpg" alt="Large chips">
               <div><h4>Large Chips</h4><p class="desc">A feast of golden fries, perfect for groups or big appetites.</p><div class="price">R40</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
-                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+                <div class="option-group"><div class="option-label">Seasoning</div>
+                  <div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Sauce</div>
+                  <div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
@@ -434,27 +652,35 @@
         </section>
 
         <!-- Fish -->
-        <section id="fish">
+        <section id="fish" aria-label="Fish">
           <h3 class="section-title">Fish</h3>
-          <div class="menu">
-            <article class="card" data-item="Fish" data-price="30">
+          <div class="menu" role="list">
+            <article class="card" data-item="Fish" data-price="30" role="listitem">
               <img src="fish1.jpg" alt="Fish">
               <div><h4>Fish</h4><p class="desc">Freshly fried fish fillet, seasoned to perfection.</p><div class="price">R30</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Fish seasoning</div><div class="chips" data-type="fish-seasoning"><div class="chip">Salt</div><div class="chip">Vinegar</div><div class="chip">Lime Slice</div></div></div>
+                <div class="option-group"><div class="option-label">Fish seasoning</div>
+                  <div class="chips" data-type="fish-seasoning"><div class="chip">Salt</div><div class="chip">Vinegar</div><div class="chip">Lime Slice</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Fish & Chips" data-price="55">
+            <article class="card" data-item="Fish & Chips" data-price="55" role="listitem">
               <img src="fish2.jpg" alt="Fish and chips">
               <div><h4>Fish & Chips</h4><p class="desc">Golden fried fish paired with a hearty portion of chips.</p><div class="price">R55</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <div class="options">
-                <div class="option-group"><div class="option-label">Fish seasoning</div><div class="chips" data-type="fish-seasoning"><div class="chip">Salt</div><div class="chip">Vinegar</div><div class="chip">Lime Slice</div></div></div>
-                <div class="option-group"><div class="option-label">Chips seasoning</div><div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div></div>
-                <div class="option-group"><div class="option-label">Sauce</div><div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div></div>
+                <div class="option-group"><div class="option-label">Fish seasoning</div>
+                  <div class="chips" data-type="fish-seasoning"><div class="chip">Salt</div><div class="chip">Vinegar</div><div class="chip">Lime Slice</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Chips seasoning</div>
+                  <div class="chips" data-type="seasoning"><div class="chip">Salt</div><div class="chip">Spice</div><div class="chip">Vinegar</div></div>
+                </div>
+                <div class="option-group"><div class="option-label">Sauce</div>
+                  <div class="chips" data-type="sauce"><div class="chip">Tomato</div><div class="chip">BBQ</div><div class="chip">Hot Sauce</div><div class="chip">Chip Dip</div></div>
+                </div>
               </div>
               <button class="add-btn">Add to cart</button>
             </article>
@@ -462,45 +688,45 @@
         </section>
 
         <!-- Sandwiches -->
-        <section id="sandwiches">
+        <section id="sandwiches" aria-label="Sandwiches">
           <h3 class="section-title">Sandwiches</h3>
-          <div class="menu">
-            <article class="card" data-item="Sandwich — Cheese & Tomato" data-price="18">
+          <div class="menu" role="list">
+            <article class="card" data-item="Sandwich — Cheese & Tomato" data-price="18" role="listitem">
               <img src="sandwich1.jpg" alt="Cheese & Tomato sandwich">
               <div><h4>Cheese & Tomato</h4><p class="desc">Classic toasted sandwich with melted cheese and fresh tomato.</p><div class="price">R18</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Sandwich — Cheese, Egg & Tomato" data-price="23">
+            <article class="card" data-item="Sandwich — Cheese, Egg & Tomato" data-price="23" role="listitem">
               <img src="sandwich2.jpg" alt="Cheese, Egg & Tomato sandwich">
               <div><h4>Cheese, Egg & Tomato</h4><p class="desc">A hearty toastie with cheese, fried egg, and tomato.</p><div class="price">R23</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Sandwich — Cheese & Bacon" data-price="26">
+            <article class="card" data-item="Sandwich — Cheese & Bacon" data-price="26" role="listitem">
               <img src="sandwich3.jpg" alt="Cheese & Bacon sandwich">
               <div><h4>Cheese & Bacon</h4><p class="desc">Smoky bacon and melted cheese in a toasted sandwich.</p><div class="price">R26</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Sandwich — Cheese, Bacon & Egg" data-price="32">
+            <article class="card" data-item="Sandwich — Cheese, Bacon & Egg" data-price="32" role="listitem">
               <img src="sandwich4.jpg" alt="Cheese, Bacon & Egg sandwich">
               <div><h4>Cheese, Bacon & Egg</h4><p class="desc">A breakfast favorite with bacon, cheese, and egg.</p><div class="price">R32</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Sandwich — Chicken & Mayo" data-price="30">
+            <article class="card" data-item="Sandwich — Chicken & Mayo" data-price="30" role="listitem">
               <img src="sandwich5.jpg" alt="Chicken & Mayo sandwich">
               <div><h4>Chicken & Mayo</h4><p class="desc">Tender chicken mixed with creamy mayo in toasted bread.</p><div class="price">R30</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
               <button class="add-btn">Add to cart</button>
             </article>
 
-            <article class="card" data-item="Sandwich — Dagwood" data-price="55">
+            <article class="card" data-item="Sandwich — Dagwood" data-price="55" role="listitem">
               <img src="sandwich6.jpg" alt="Dagwood sandwich">
               <div><h4>Dagwood</h4><p class="desc">The ultimate stacked sandwich with layers of meat, cheese, and egg.</p><div class="price">R55</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
@@ -510,10 +736,10 @@
         </section>
 
         <!-- Extras -->
-        <section id="extras">
+        <section id="extras" aria-label="Extras">
           <h3 class="section-title">Extras</h3>
-          <div class="menu">
-            <article class="card" data-item="Extra — Russian" data-price="15">
+          <div class="menu" role="list">
+            <article class="card" data-item="Extra — Russian" data-price="15" role="listitem">
               <img src="extra1.jpg" alt="Russian extra">
               <div><h4>Russian (extra)</h4><p class="desc">Add a juicy Russian sausage to any meal.</p><div class="price">R15</div></div>
               <div class="qty-controls"><button class="btn btn-sub">−</button><div class="qty-display">0</div><button class="btn btn-add">+</button></div>
@@ -523,9 +749,9 @@
         </section>
       </div>
 
-      <!-- Cart -->
-      <aside id="cart" class="cart">
-        <div class="order-meta">
+      <!-- Fixed Checkout (always inline) -->
+      <aside id="cart" class="cart" aria-label="Your cart and checkout">
+        <div class="order-meta" aria-label="Order metadata">
           <div>Order ID: <span id="order-number"></span></div>
           <div><span id="live-time"></span></div>
         </div>
@@ -533,63 +759,91 @@
         <h3>Your Cart</h3>
         <div id="cart-items" class="cart-items"></div>
 
-        <div class="summary">
+        <div class="summary" aria-label="Order summary">
           <div class="summary-row"><span>Subtotal</span><span>R<span id="subtotal">0</span></span></div>
 
-          <div class="delivery-toggle" id="delivery-toggle">
-            <div class="toggle-option active" data-mode="collection">
+          <div class="delivery-toggle" id="delivery-toggle" role="group" aria-label="Choose delivery or collection">
+            <div class="toggle-option active" data-mode="collection" aria-label="Collection">
               Collection at Nzuri Café — Free
               <small>11:00–20:30</small>
             </div>
-            <div class="toggle-option" data-mode="delivery">
+            <div class="toggle-option" data-mode="delivery" aria-label="Delivery">
               Delivery to Ekhaya Junction — R7
               <small>15:00–20:30</small>
             </div>
           </div>
 
           <div id="room-field" class="input-field" style="display:none;">
-            <input type="text" id="room" placeholder="Ekhaya Junction room number (e.g., Block A, Room 42)" />
+            <input type="text" id="room" placeholder="Ekhaya Junction room number (e.g., Block A, Room 42)" aria-label="Room number for delivery" />
           </div>
 
           <div class="input-field">
-            <input type="text" id="name" placeholder="Your name" />
+            <input type="text" id="name" placeholder="Your name" aria-label="Your name" />
           </div>
 
           <div class="input-field">
-            <input type="tel" id="phone" placeholder="Your phone number" />
+            <input type="tel" id="phone" placeholder="Your phone number" aria-label="Your phone number" />
           </div>
 
           <div class="input-field">
-            <input type="number" id="tip" min="0" step="1" placeholder="Tip amount (optional)" />
+            <input type="number" id="tip" min="0" step="1" placeholder="Tip amount (optional)" aria-label="Tip amount" />
           </div>
 
           <div class="summary-row"><span>Delivery fee</span><span>R<span id="delivery-fee">0</span></span></div>
           <div class="summary-row summary-total"><span>Total</span><span>R<span id="total">0</span></span></div>
         </div>
 
-        <button class="checkout-btn" onclick="checkout()">Order via WhatsApp</button>
-        <button class="clear-btn" onclick="clearCart()">Clear cart</button>
+        <button class="checkout-btn" onclick="checkout()" aria-label="Order via WhatsApp">Order via WhatsApp</button>
+        <button class="clear-btn" onclick="openClearModal()" aria-label="Clear cart">Clear cart</button>
       </aside>
-    </div>
-  </div>
+    </section>
+  </main>
 
-  <!-- Footer with hover contact -->
-  <footer class="footer">
+  <!-- Footer -->
+  <footer class="footer" aria-label="Footer">
     <div class="footer-text">
       Nzuri Café • <span class="author">Made by DrMcGi</span>
       <span class="contact">064 921 1745 • giftk.rantho@gmail.com</span>
     </div>
   </footer>
 
+  <!-- Clear cart confirmation modal -->
+  <div id="clear-modal" class="modal" aria-hidden="true" role="dialog" aria-label="Confirm clear cart">
+    <div class="modal-content">
+      <p>Are you sure you want to clear your cart?</p>
+      <div class="modal-actions">
+        <button id="confirm-clear" class="confirm" aria-label="Confirm clear">Yes, clear</button>
+        <button id="cancel-clear" class="cancel" aria-label="Cancel clear">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Cart Toggle -->
+  <div id="floating-cart-toggle" class="floating-cart-toggle" aria-label="Open floating checkout">
+    🛒 Checkout
+  </div>
+
+  <!-- Floating Cart Panel (duplicate checkout, expandable anywhere) -->
+  <div id="floating-cart-panel" class="floating-cart-panel" aria-label="Floating checkout">
+    <button id="close-floating-cart" class="close-cart-btn" aria-label="Close floating checkout">×</button>
+    <h3>Your Cart</h3>
+    <div id="floating-cart-items" class="cart-items"></div>
+    <div class="summary">
+      <div class="summary-row"><span>Subtotal</span><span>R<span id="floating-subtotal">0</span></span></div>
+      <div class="summary-row"><span>Delivery fee</span><span>R<span id="floating-delivery-fee">0</span></span></div>
+      <div class="summary-row summary-total"><span>Total</span><span>R<span id="floating-total">0</span></span></div>
+    </div>
+    <button class="checkout-btn" onclick="checkout()" aria-label="Order via WhatsApp">Order via WhatsApp</button>
+  </div>
+
   <script>
-    const WHATSAPP_NUMBER = '27790717794'; // Intl format without '+'
+    const WHATSAPP_NUMBER = '27790717794';
     const DELIVERY_FEE = 7;
 
     let cart = [];
-    let orderSeq = 1;
     let deliveryMode = 'collection';
 
-    // Live time + order ID
+    // Utility: today stamp
     function todayStamp(){
       const d = new Date();
       const yyyy = d.getFullYear();
@@ -597,20 +851,26 @@
       const dd = String(d.getDate()).padStart(2,'0');
       return `${yyyy}${mm}${dd}`;
     }
-    const pad3 = n => String(n).padStart(3,'0');
-    const generateOrderId = () => `nzuri-${todayStamp()}-${pad3(orderSeq)}`;
+    const pad2 = n => String(n).padStart(2,'0');
 
+    // Live time
     function updateLiveTime(){
       const d = new Date();
-      const h = String(d.getHours()).padStart(2,'0');
-      const m = String(d.getMinutes()).padStart(2,'0');
-      const s = String(d.getSeconds()).padStart(2,'0');
+      const h = pad2(d.getHours());
+      const m = pad2(d.getMinutes());
+      const s = pad2(d.getSeconds());
       const el = document.getElementById('live-time');
       if(el) el.textContent = `${h}:${m}:${s}`;
     }
     setInterval(updateLiveTime, 500);
     updateLiveTime();
-    document.getElementById('order-number').textContent = generateOrderId();
+
+    // Improved Order ID: random suffix
+    function generateOrderId() {
+      const base = todayStamp();
+      const rand = Math.floor(Math.random()*900)+100; // 100–999
+      return `nzuri-${base}-${rand}`;
+    }
 
     // Header compact on hero out of view
     const header = document.getElementById('app-header');
@@ -636,6 +896,133 @@
       });
     });
 
+    // Order hours enforcement
+    function withinHours() {
+      const d = new Date();
+      const h = d.getHours();
+      return h >= 8 && h < 21; // 08:00–21:00
+    }
+    function updateCheckoutButton() {
+      const btns = document.querySelectorAll('.checkout-btn');
+      btns.forEach(btn=>{
+        if(!withinHours()) {
+          btn.disabled = true;
+          btn.textContent = "Closed (08:00–21:00)";
+        } else {
+          btn.disabled = false;
+          btn.textContent = "Order via WhatsApp";
+        }
+      });
+    }
+    setInterval(updateCheckoutButton, 60000);
+    updateCheckoutButton();
+
+    // Category tab highlighting
+    const sections = Array.from(document.querySelectorAll('section[id]'));
+    const navLinks = Array.from(document.querySelectorAll('.categories a'));
+    function activateTab(id){
+      navLinks.forEach(link => link.classList.remove('active'));
+      const activeLink = document.querySelector(`.categories a[href="#${id}"]`);
+      if(activeLink) activeLink.classList.add('active');
+    }
+    function onScrollActivate(){
+      const offset = 120;
+      let currentId = sections[0]?.id || 'kotas';
+      for(const sec of sections){
+        const rect = sec.getBoundingClientRect();
+        if(rect.top <= offset && rect.bottom > offset){
+          currentId = sec.id;
+          break;
+        }
+      }
+      activateTab(currentId);
+    }
+    window.addEventListener('scroll', onScrollActivate, { passive:true });
+    navLinks.forEach(link=>{
+      link.addEventListener('click', ()=>{
+        navLinks.forEach(l=>l.classList.remove('active'));
+        link.classList.add('active');
+      });
+    });
+
+    // Cart persistence
+    function saveCart() {
+      try { localStorage.setItem('nzuriCart', JSON.stringify(cart)); } catch(e){}
+    }
+    function loadCart() {
+      try {
+        const saved = localStorage.getItem('nzuriCart');
+        if(saved) cart = JSON.parse(saved) || [];
+      } catch(e){}
+    }
+    loadCart();
+
+    // Update header badge
+    function updateHeaderBadge(animate=false){
+      const count = cart.reduce((sum,l)=>sum+l.qty,0);
+      const badge = document.getElementById('cart-count');
+      badge.textContent = count;
+      if(animate){
+        badge.classList.remove('bump');
+        void badge.offsetWidth;
+        badge.classList.add('bump');
+      }
+    }
+
+    // Cart preview (last 3 items)
+    function updateCartPreview() {
+      const preview = document.getElementById('cart-preview');
+      if(!preview) return;
+      if(cart.length === 0) {
+        preview.innerHTML = "<em>Cart is empty</em>";
+        return;
+      }
+      const lastItems = cart.slice(-3).map(l => `${l.item} ×${l.qty}`).join('<br>');
+      preview.innerHTML = lastItems;
+    }
+
+    // Totals helpers
+    function getSubtotal(){
+      return cart.reduce((sum,l)=>sum + l.price*l.qty, 0);
+    }
+    function updateTotals(){
+      const subtotal = getSubtotal();
+      const tipVal = parseFloat(document.getElementById('tip')?.value || 0) || 0;
+      const delFee = deliveryMode==='delivery' ? DELIVERY_FEE : 0;
+      const total = subtotal + delFee + tipVal;
+      const subEl = document.getElementById('subtotal');
+      const delEl = document.getElementById('delivery-fee');
+      const totEl = document.getElementById('total');
+      if(subEl) subEl.textContent = Math.round(subtotal);
+      if(delEl) delEl.textContent = delFee;
+      if(totEl) totEl.textContent = Math.round(total);
+
+      // Mirror into floating panel
+      const fSub = document.getElementById('floating-subtotal');
+      const fDel = document.getElementById('floating-delivery-fee');
+      const fTot = document.getElementById('floating-total');
+      if(fSub) fSub.textContent = Math.round(subtotal);
+      if(fDel) fDel.textContent = delFee;
+      if(fTot) fTot.textContent = Math.round(total);
+    }
+
+    // Clear cart modal
+    function openClearModal(){
+      const modal = document.getElementById('clear-modal');
+      modal.setAttribute('aria-hidden','false');
+    }
+    function closeClearModal(){
+      const modal = document.getElementById('clear-modal');
+      modal.setAttribute('aria-hidden','true');
+    }
+    document.getElementById('confirm-clear').addEventListener('click', ()=>{
+      cart = [];
+      saveCart();
+      renderCart(true);
+      closeClearModal();
+    });
+    document.getElementById('cancel-clear').addEventListener('click', closeClearModal);
+
     // Item cards logic
     document.querySelectorAll('.card').forEach(card=>{
       const item = card.dataset.item;
@@ -644,7 +1031,7 @@
       const subBtn = card.querySelector('.btn-sub');
       const addBtn = card.querySelector('.btn-add');
       const qtyDisplay = card.querySelector('.qty-display');
-      const options = card.querySelector('.options'); // may be null
+      const options = card.querySelector('.options');
       const addCartBtn = card.querySelector('.add-btn');
 
       let qty = 0;
@@ -664,60 +1051,64 @@
         if(qty>0){ showConfig(true); }
       });
 
-      // Chip toggles (if options exist)
       if(options){
         options.querySelectorAll('.chip').forEach(chip=>{
           chip.addEventListener('click', ()=>chip.classList.toggle('active'));
         });
       }
 
-      // Add to cart with fly-to-cart animation
-      addCartBtn.addEventListener('click', ()=>{
-        if(qty<=0) return;
+      if(addCartBtn){
+        addCartBtn.addEventListener('click', ()=>{
+          if(qty<=0) return;
 
-        const cfg = { seasoning:[], sauce:[], fishSeasoning:[] };
-        if(options){
-          options.querySelectorAll('.chips').forEach(group=>{
-            const type = group.dataset.type;
-            const selected = Array.from(group.querySelectorAll('.chip.active')).map(c=>c.textContent);
-            if(type==='seasoning') cfg.seasoning = selected;
-            if(type==='sauce') cfg.sauce = selected;
-            if(type==='fish-seasoning') cfg.fishSeasoning = selected;
-          });
-        }
+          const cfg = { seasoning:[], sauce:[], fishSeasoning:[] };
+          if(options){
+            options.querySelectorAll('.chips').forEach(group=>{
+              const type = group.dataset.type;
+              const selected = Array.from(group.querySelectorAll('.chip.active')).map(c=>c.textContent);
+              if(type==='seasoning') cfg.seasoning = selected;
+              if(type==='sauce') cfg.sauce = selected;
+              if(type==='fish-seasoning') cfg.fishSeasoning = selected;
+            });
+          }
 
-        cart.push({ item, price, qty, options: cfg });
+          cart.push({ item, price, qty, options: cfg });
 
-        // Fly image animation toward cart badge
-        const img = card.querySelector('img');
-        const badge = document.getElementById('cart-count');
-        if(img && badge){
-          const rect = img.getBoundingClientRect();
-          const badgeRect = badge.getBoundingClientRect();
-          const clone = img.cloneNode(true);
-          clone.classList.add('fly-img');
-          clone.style.top = rect.top + 'px';
-          clone.style.left = rect.left + 'px';
-          clone.style.width = rect.width + 'px';
-          document.body.appendChild(clone);
-          requestAnimationFrame(()=>{
-            const dx = (badgeRect.left + badgeRect.width/2) - (rect.left + rect.width/2);
-            const dy = (badgeRect.top + badgeRect.height/2) - (rect.top + rect.height/2);
-            clone.style.transform = `translate(${dx}px, ${dy}px) scale(0.2)`;
-            clone.style.opacity = '0';
-          });
-          clone.addEventListener('transitionend', ()=>clone.remove());
-        }
+          // Fly image animation toward cart badge
+          const img = card.querySelector('img');
+          const badge = document.getElementById('cart-count');
+          if(img && badge){
+            const rect = img.getBoundingClientRect();
+            const badgeRect = badge.getBoundingClientRect();
+            const clone = img.cloneNode(true);
+            clone.classList.add('fly-img');
+            clone.style.top = rect.top + 'px';
+            clone.style.left = rect.left + 'px';
+            clone.style.width = rect.width + 'px';
+            document.body.appendChild(clone);
+            requestAnimationFrame(()=>{
+              const dx = (badgeRect.left + badgeRect.width/2) - (rect.left + rect.width/2);
+              const dy = (badgeRect.top + badgeRect.height/2) - (rect.top + rect.height/2);
+              clone.style.transform = `translate(${dx}px, ${dy}px) scale(0.2)`;
+              clone.style.opacity = '0';
+            });
+            clone.addEventListener('transitionend', ()=>clone.remove());
+          }
 
-        // Reset local state
-        qty = 0; qtyDisplay.textContent = 0;
-        showConfig(false);
-        if(options){ options.querySelectorAll('.chip.active').forEach(c=>c.classList.remove('active')); }
+          // Reset local state
+          qty = 0; qtyDisplay.textContent = 0;
+          showConfig(false);
+          if(options){ options.querySelectorAll('.chip.active').forEach(c=>c.classList.remove('active')); }
 
-        renderCart(true); // update UI
-      });
+          renderCart(true);
+          // Pulse floating toggle to suggest quick checkout
+          floatingToggle.classList.add('pulse');
+          setTimeout(()=>floatingToggle.classList.remove('pulse'), 3000);
+        });
+      }
     });
 
+    // Render cart
     function renderCart(animateBadge=false){
       const itemsDiv = document.getElementById('cart-items');
       itemsDiv.innerHTML = '';
@@ -739,8 +1130,8 @@
             <div>${line.item} ×${line.qty} <span class="variant">${variantText}</span></div>
             <div class="line-total">R${lineTotal}</div>
             <div style="display:flex;gap:6px;">
-              <button class="remove-one">Remove 1</button>
-              ${line.qty>1 ? '<button class="remove-all">Clear all</button>' : ''}
+              <button class="remove-one" aria-label="Remove one">Remove 1</button>
+              ${line.qty>1 ? '<button class="remove-all" aria-label="Remove all">Clear all</button>' : ''}
             </div>
           `;
 
@@ -762,56 +1153,37 @@
         });
       }
 
-      // Update order ID sequence
-      orderSeq += 1;
       document.getElementById('order-number').textContent = generateOrderId();
 
-      // Update totals and header badge
       updateTotals();
       updateHeaderBadge(animateBadge);
-    }
 
-    function updateHeaderBadge(animate=false){
-      const count = cart.reduce((sum,l)=>sum+l.qty,0);
-      const badge = document.getElementById('cart-count');
-      badge.textContent = count;
-      if(animate){
-        badge.classList.remove('bump');
-        void badge.offsetWidth;
-        badge.classList.add('bump');
+      saveCart();
+      updateCartPreview();
+
+      updateCheckoutButton();
+
+      const floatingItemsDiv = document.getElementById('floating-cart-items');
+      if(floatingItemsDiv){
+        floatingItemsDiv.innerHTML = itemsDiv.innerHTML;
       }
     }
 
-    function getSubtotal(){
-      return cart.reduce((sum,l)=>sum + l.price*l.qty, 0);
-    }
-
-    function updateTotals(){
-      const subtotal = getSubtotal();
-      const tipVal = parseFloat(document.getElementById('tip').value || 0) || 0;
-      const delFee = deliveryMode==='delivery' ? DELIVERY_FEE : 0;
-      const total = subtotal + delFee + tipVal;
-
-      document.getElementById('subtotal').textContent = Math.round(subtotal);
-      document.getElementById('delivery-fee').textContent = delFee;
-      document.getElementById('total').textContent = Math.round(total);
-    }
-
-    function clearCart(){
-      cart = [];
-      renderCart(true);
-    }
+    // Checkout
+    function sanitize(str){ return String(str || '').replace(/[<>]/g,'').trim(); }
 
     function checkout(){
+      const btn = document.querySelector('.checkout-btn');
+      if(btn && btn.disabled){ alert('We are currently closed. Please order between 08:00 and 21:00.'); return; }
       if(cart.length===0){ alert('Your cart is empty.'); return; }
       if(deliveryMode==='delivery'){
-        const room = (document.getElementById('room').value || '').trim();
+        const room = sanitize(document.getElementById('room').value);
         if(room.length===0){ alert('Please enter your Ekhaya Junction room number for delivery.'); return; }
       }
 
       const orderId = document.getElementById('order-number').textContent;
-      const name = (document.getElementById('name').value || '').trim();
-      const phone = (document.getElementById('phone').value || '').trim();
+      const name = sanitize(document.getElementById('name').value);
+      const phone = sanitize(document.getElementById('phone').value);
       const tipVal = parseFloat(document.getElementById('tip').value || 0) || 0;
       const subtotal = getSubtotal();
       const delFee = deliveryMode==='delivery' ? DELIVERY_FEE : 0;
@@ -823,7 +1195,7 @@
       lines.push(`Phone: ${phone || '—'}`);
       lines.push(`Mode: ${deliveryMode==='delivery' ? 'Delivery (Ekhaya Junction only, R7)' : 'Collection at Nzuri Café (Ekhaya Junction)'}`);
       if(deliveryMode==='delivery'){
-        lines.push(`Room: ${(document.getElementById('room').value || '').trim()}`);
+        lines.push(`Room: ${sanitize(document.getElementById('room').value)}`);
       }
       lines.push('');
       lines.push('Items:');
@@ -836,10 +1208,10 @@
         lines.push(`• ${l.item} ×${l.qty}${variant} — R${l.price*l.qty}`);
       });
       lines.push('');
-      lines.push(`Subtotal: R${subtotal}`);
+      lines.push(`Subtotal: R${Math.round(subtotal)}`);
       lines.push(`Delivery fee: R${delFee}`);
-      lines.push(`Tip: R${tipVal}`);
-      lines.push(`Total: R${total}`);
+      lines.push(`Tip: R${Math.round(tipVal)}`);
+      lines.push(`Total: R${Math.round(total)}`);
       lines.push('');
       lines.push('Payment: Cash or digital on delivery/collection.');
       lines.push('Location: Nzuri Café, Ekhaya Junction Residence, TUT Campus.');
@@ -850,54 +1222,47 @@
       window.location.href = waUrl;
     }
 
-    /* Correct category tab highlighting using scroll position (single active at a time) */
-    const sections = Array.from(document.querySelectorAll('section'));
-    const navLinks = Array.from(document.querySelectorAll('.categories a'));
-
-    function activateTab(id){
-      navLinks.forEach(link => link.classList.remove('active'));
-      const activeLink = document.querySelector(`.categories a[href="#${id}"]`);
-      if(activeLink) activeLink.classList.add('active');
-    }
-
-    function onScrollActivate(){
-      // Offset to account for sticky header + tabs height
-      const offset = 120;
-      let currentId = sections[0]?.id || 'kotas';
-
-      for(const sec of sections){
-        const rect = sec.getBoundingClientRect();
-        if(rect.top <= offset && rect.bottom > offset){
-          currentId = sec.id;
-          break;
-        }
-      }
-      activateTab(currentId);
-    }
-
-    window.addEventListener('scroll', onScrollActivate, { passive:true });
-
-    // Click behavior: make sure only one active, then smooth scroll
-    navLinks.forEach(link=>{
-      link.addEventListener('click', (e)=>{
-        // Allow default anchor, but we briefly set active for immediate feedback
-        navLinks.forEach(l=>l.classList.remove('active'));
-        link.classList.add('active');
-      });
-    });
-
     // Initialize
     function init(){
-      updateLiveTime();
       document.getElementById('order-number').textContent = generateOrderId();
-      renderCart(false);
-      document.getElementById('tip').addEventListener('input', updateTotals);
-
-      // Default active to Kotas on load
-      activateTab('kotas');
+      const tipEl = document.getElementById('tip');
+      if(tipEl) tipEl.addEventListener('input', updateTotals);
+      // Activate first tab initially
+      const firstSection = document.querySelector('section[id]');
+      if(firstSection) activateTab(firstSection.id);
       onScrollActivate();
+      renderCart(false);
     }
     init();
+
+    // Floating cart toggle + panel behavior
+    const floatingToggle = document.getElementById('floating-cart-toggle');
+    const floatingPanel = document.getElementById('floating-cart-panel');
+    const closeFloatingCart = document.getElementById('close-floating-cart');
+    const fixedCart = document.getElementById('cart');
+
+    // Expand floating cart anywhere
+    floatingToggle.addEventListener('click', ()=>{
+      floatingPanel.classList.add('expanded');
+    });
+
+    // Close floating cart
+    closeFloatingCart.addEventListener('click', ()=>{
+      floatingPanel.classList.remove('expanded');
+    });
+
+    // Auto-hide floating toggle and collapse panel when fixed cart is visible
+    const cartObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          floatingToggle.classList.add('hidden');
+          floatingPanel.classList.remove('expanded');
+        } else {
+          floatingToggle.classList.remove('hidden');
+        }
+      });
+    }, { threshold: 0.2 });
+    cartObserver.observe(fixedCart);
   </script>
 </body>
 </html>
